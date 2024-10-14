@@ -1,0 +1,5 @@
+inherit_gem:
+  main_branch_shared_rubocop_config: config/rubocop.yml
+
+AllCops:
+  TargetRubyVersion: 3.1
