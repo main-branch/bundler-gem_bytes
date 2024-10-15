@@ -51,15 +51,46 @@ Add a feature to your gem as follows:
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake
-spec` to run the tests. You can also run `bin/console` for an interactive prompt that
-will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run
+`rake` to run all the tests that will be run in the `continuous-integration`
+workflow. You can also run `bin/console` for an interactive prompt that will allow
+you to experiment.
 
 To install this gem onto your local machine, run `bundle exec rake install`. To
 release a new version, update the version number in `version.rb`, and then run
 `bundle exec rake release`, which will create a git tag for the version, push git
 commits and the created tag, and push the `.gem` file to
 [rubygems.org](https://rubygems.org).
+
+To install this bundler plugin from the source code, run the following command from
+the project's root directory:
+
+```shell
+bundler plugin install --path . bundler-gem_bytes
+```
+
+and then run `bundler plugin list` to make sure it was installed correctly:
+
+```shell
+$ bundler plugin list
+bundler-gem_bytes
+-----
+  gem-bytes
+
+$
+```
+
+Once installed, the bundler plugin can be run with the following command:
+
+```shell
+bundler gem-bytes
+```
+
+To uninstall the plugin, run:
+
+```shell
+bundler uninstall bundler-gem_bytes
+```
 
 ## Contributing
 
