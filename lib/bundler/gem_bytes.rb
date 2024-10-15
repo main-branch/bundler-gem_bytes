@@ -10,12 +10,8 @@ module Bundler
   # @api public
   #
   module GemBytes
-    # Base error class for this gem
-    #
-    # @api public
-    #
-    class Error < StandardError; end
   end
-
-  require_relative 'gem_bytes/version'
 end
+
+require_relative 'gem_bytes/bundler_command'
+require_relative 'gem_bytes/version'
