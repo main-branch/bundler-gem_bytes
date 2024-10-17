@@ -85,3 +85,4 @@ end
 
 CLOBBER << 'package-lock.json'
 CLOBBER << 'node_modules'
+CLOBBER << '.bundle'
