@@ -14,13 +14,25 @@ Coverage](https://api.codeclimate.com/v1/badges/2468fc247e5d66fc179f/test_covera
 Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
 [![Slack](https://img.shields.io/badge/slack-main--branch/bundler--gem_bytes-yellow.svg?logo=slack)](https://main-branch.slack.com/archives/C07RKRKTLDT)
 
-**NOTE: https://gembytes.com is not yet active. For now, you will have to bring your
-own URL.**
+This gem is a bundler plugin that can add testing, linting, and security frameworks
+to a Ruby gem project.
 
-A bundler plugin that adds features to your existing Ruby Gems project.
+This project is similar to [the RailsBytes project](https://railsbytes.com) which
+helps add configuration to a Rails project.
 
-See [our repository of templates](http://gembytes.com/templates) for adding testing,
-linting, and security frameworks to your project.
+GemBytes scripts are run via the `bundler gem-bytes` command:
+
+```shell
+bundler gem-bytes PATH_OR_URI
+```
+
+where `PATH_OR_URI` identifies a gem-bytes script.
+
+See [the repository of GemBytes scripts](http://gembytes.com/scripts) for publicly
+available GemBytes scripts.
+
+**NOTE: [the GemBytes repository](https://gembytes.com) is not yet active. For now, you will have to bring your
+own script**
 
 * [Installation](#installation)
 * [Usage](#usage)
@@ -35,16 +47,10 @@ linting, and security frameworks to your project.
 
 ## Installation
 
-Install the gem and add to the application's Gemfile by executing:
+Install this bundler plugin as follows:
 
 ```shell
-bundle add bundler-gem_bytes
-```
-
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-```shell
-gem install bundler-gem_bytes
+bundle plugin install bunder-gem_bytes
 ```
 
 ## Usage
@@ -55,12 +61,11 @@ context of your project.
 
 ### Example
 
-1. Find a script or feature template you'd like to add to your gem and make a note of
-   its URL.
-2. Run `bundler gem-bytes URL_OR_PATH` where `URL_OR_PATH` is either a local file
+1. Find a template script for a feature you'd like to add to your gem and make a note
+   of its URI.
+2. Run `bundler gem-bytes PATH_OR_URI` where `PATH_OR_URI` is either a local file
    path or a remote URI.
-3. The script will be executed, and the relevant feature will be applied to your
-   project.
+3. The script will be executed to add the relevant feature to your project.
 
 ### Handling Errors
 
