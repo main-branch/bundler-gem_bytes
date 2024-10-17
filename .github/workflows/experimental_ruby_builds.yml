@@ -10,6 +10,8 @@ env:
   # SimpleCov suggests setting the JRuby --debug flag to ensure that coverage
   # results from JRuby are complete.
   JRUBY_OPTS: --debug
+  # List lines that are not covered by tests (from SimpleCov::RSpec)
+  LIST_UNCOVERED_LINES: "true"
 
 # Experimental platforms / Ruby versions:
 #  - Ubuntu: MRI (head), TruffleRuby (head), JRuby (head)

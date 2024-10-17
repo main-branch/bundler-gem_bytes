@@ -44,6 +44,8 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
+  spec.add_dependency 'thor', '~> 1.3'
+
   spec.add_development_dependency 'bundler-audit', '~> 0.9'
   spec.add_development_dependency 'main_branch_shared_rubocop_config'
   spec.add_development_dependency 'rake', '~> 13.2'

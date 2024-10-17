@@ -14,5 +14,5 @@ module Bundler
 end
 
 require_relative 'gem_bytes/bundler_command'
-require_relative 'gem_bytes/script_loader'
+require_relative 'gem_bytes/script_executor'
 require_relative 'gem_bytes/version'

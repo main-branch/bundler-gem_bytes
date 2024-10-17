@@ -4,27 +4,20 @@ module Bundler
   module GemBytes
     # A bundler command that adds features to your existing Ruby Gems project
     #
-    # See [our repository of templates](http://gembytes.com/templates) for adding
-    # testing, linting, and security frameworks to your project.
-    #
     # @api public
     #
     class BundlerCommand < Bundler::Plugin::API
       # Called when the `gem-bytes` command is invoked
       #
       # @example
-      #   $ bundler gem-bytes URI_OR_PATH
-      #
-      # @param command [String] the command that was invoked (in this case, 'gem-bytes')
+      #   BundlerCommand.new.exec('gem-bytes', ['path_or_uri_to_script'])
+      # @param _command [String] the command that was invoked (in this case, 'gem-bytes')
       # @param args [Array<String>] any additional arguments passed to the command
-      #
-      # @raise [BundlerError] if there was an error executing the command
+      # @raise [SystemExit] if there was an error executing the command
       # @return [void]
-      #
       def exec(_command, args)
         uri_or_path = validate_args(args)
-        script_content = load_script(uri_or_path)
-        puts script_content
+        execute_script(uri_or_path)
       end
 
       private
@@ -43,17 +36,16 @@ module Bundler
         args.first
       end
 
-      # Loads the script content from the provided URI or file path
+      # Executes the script using ScriptExecutor
       #
-      # @param uri_or_path [String] the URI or file path to load the script from
-      # @raise [SystemExit] if there is an error loading the script
-      # @return [String] the content of the script
+      # @param uri_or_path [String] the URI or file path to the script
+      # @return [void]
       # @api private
-      def load_script(uri_or_path)
-        loader = ScriptLoader.new(uri_or_path)
-        loader.load
+      def execute_script(uri_or_path)
+        executor = ScriptExecutor.new
+        executor.execute(uri_or_path)
       rescue RuntimeError => e
-        warn "Error loading script: #{e.message}"
+        warn "Error applying script: #{e.message}"
         exit 1
       end
     end
