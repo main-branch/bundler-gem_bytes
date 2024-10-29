@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'bundler'
+
 module Bundler
   module GemBytes
     # A bundler command that adds features to your existing Ruby Gems project
