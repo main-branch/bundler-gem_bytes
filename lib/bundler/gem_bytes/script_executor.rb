@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-# require 'pp'
 require 'thor'
-require 'uri'
+require_relative 'actions'
 
 module Bundler
   module GemBytes
@@ -13,8 +12,9 @@ module Bundler
     # @example Executing a script from a file or URI
     #   executor = Bundler::GemBytes::ScriptExecutor.new
     #   executor.execute('path_or_uri_to_script')
-    class ScriptExecutor < Thor::Group
-      include Thor::Actions
+    class ScriptExecutor < ::Thor::Group
+      include ::Thor::Actions
+      include Bundler::GemBytes::Actions
 
       # Set the source paths for Thor to use
       # @return [Array<String>] the source paths

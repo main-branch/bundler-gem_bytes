@@ -14,6 +14,7 @@ module Bundler
 end
 
 require 'active_support'
+require 'thor'
 
 require_relative 'gem_bytes/bundler_command'
 require_relative 'gem_bytes/gemspec'
