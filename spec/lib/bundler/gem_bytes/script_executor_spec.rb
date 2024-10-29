@@ -3,6 +3,14 @@
 RSpec.describe Bundler::GemBytes::ScriptExecutor do
   let(:instance) { described_class.new }
 
+  it 'is expected to include Thor actions' do
+    expect(described_class.ancestors).to include(Thor::Actions)
+  end
+
+  it 'is expected to include GemBytes actions' do
+    expect(described_class.ancestors).to include(Bundler::GemBytes::Actions)
+  end
+
   describe '#execute' do
     subject { instance.execute(path_or_uri) }
 
