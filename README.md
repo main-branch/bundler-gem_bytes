@@ -85,34 +85,32 @@ release a new version, update the version number in `version.rb`, and then run
 commits and the created tag, and push the `.gem` file to
 [rubygems.org](https://rubygems.org).
 
-To install this bundler plugin from the source code, run the following command from
-the project's root directory:
+To debug this gem it is recommended that you create a test project and install
+this plugin with bundler from source code as follows:
 
 ```shell
-bundler plugin install --path . bundler-gem_bytes
-```
+# 1. Create a temp directory for testing (from the root directory of the project)
+mkdir temp
+cd temp
 
-and then run `bundler plugin list` to make sure it was installed correctly:
+# 2. Create an new, empty RubyGem project to test
+BUNDLE_IGNORE_CONFIG=TRUE bundle gem foo --no-test --no-ci --no-mit --no-coc --no-linter --no-changelog
+cd foo
 
-```shell
-$ bundler plugin list
-bundler-gem_bytes
------
-  gem-bytes
+# 3. Install the plugin from source
+BUNDLE_IGNORE_CONFIG=TRUE bundle plugin install --path ../.. bundler-gem_bytes
 
-$
-```
+# 4. Create a gembytes script to add a development dependency on rubocop
+cat <<SCRIPT > gem_bytes_script.rb
+add_dependency :development, "rubocop", "~> 1.6"
+SCRIPT
 
-Once installed, the bundler plugin can be run with the following command:
+# 5. Modify code, set breakpoints, or add binding.{irb|pry} calls to the source
 
-```shell
-bundler gem-bytes
-```
+# 6. Run the plugin
+BUNDLE_IGNORE_CONFIG=TRUE bundle gem-bytes gem_bytes_script.rb
 
-To uninstall the plugin, run:
-
-```shell
-bundler uninstall bundler-gem_bytes
+# Repeat 4 - 6 until satisified :)
 ```
 
 ## Contributing
