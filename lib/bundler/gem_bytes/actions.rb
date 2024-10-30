@@ -24,13 +24,11 @@ module Bundler
       # @api public
       #
       def add_dependency(dependency_type, gem_name, version_constraint, force: false, gemspec: Dir['*.gemspec'].first)
-        puts 'Staring'
         source = File.read(gemspec)
         updated_source = Bundler::GemBytes::Gemspec::UpsertDependency.new(
           dependency_type, gem_name, version_constraint, force: force
         ).call(source)
         File.write(gemspec, updated_source)
-        puts 'Ending'
       end
     end
   end
