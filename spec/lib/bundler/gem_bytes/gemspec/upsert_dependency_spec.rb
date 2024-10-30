@@ -54,6 +54,16 @@ RSpec.describe Bundler::GemBytes::Gemspec::UpsertDependency do
   describe '#call' do
     subject { instance.call(gemspec) }
 
+    context 'when the gemspec is not valid Ruby code' do
+      let(:gemspec) { <<~GEMSPEC }
+        This is not valid Ruby code. Please fix this file to continue.
+      GEMSPEC
+
+      it 'raises an error' do
+        expect { subject }.to raise_error(RuntimeError, /Invalid syntax in \(string\)/)
+      end
+    end
+
     context 'when the gemspec does not contain a Gem::Specification block' do
       let(:gemspec) { <<~GEMSPEC }
         puts 'Hello, world!'
