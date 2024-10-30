@@ -13,6 +13,7 @@ RSpec.describe Bundler::GemBytes::Gemspec::UpsertDependency do
 
     context 'with valid arguments' do
       let(:expected_attributes) do
+        # :nocov: JRuby give false positive for this line being uncovered by tests
         {
           dependency_type: :development,
           gem_name: 'test_tool',
@@ -20,6 +21,7 @@ RSpec.describe Bundler::GemBytes::Gemspec::UpsertDependency do
           force: false,
           found_dependencies: []
         }
+        # :nocov:
       end
 
       it { is_expected.to have_attributes(expected_attributes) }

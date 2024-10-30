@@ -194,6 +194,7 @@ module Bundler
         # @return [String] The error message
         # @api private
         def dependency_type_conflict_error(node)
+          # :nocov: JRuby give false positive for this line being uncovered by tests
           <<~MESSAGE.chomp.gsub("\n", ' ')
             Trying to add a
             #{dependency_method_to_type(dependency_type_method).upcase}
@@ -203,6 +204,7 @@ module Bundler
             Pass force: true to update dependencies where the
             dependency type is different.
           MESSAGE
+          # :nocov:
         end
 
         # Checks if the given dependency type conflicts with the existing dependency type
@@ -253,10 +255,8 @@ module Bundler
         # @api private
         def dependency_type=(dependency_type)
           unless %i[runtime development].include?(dependency_type)
-            raise(
-              ArgumentError,
-              "Invalid dependency type: #{dependency_type.inspect}"
-            )
+            message = "Invalid dependency type: #{dependency_type.inspect}"
+            raise(ArgumentError, message)
           end
           @dependency_type = dependency_type
         end
@@ -292,6 +292,7 @@ module Bundler
         # @return [RuboCop::AST::NodePattern] The dependency pattern
         # @api private
         def dependency_pattern
+          # :nocov: JRuby give false positive for this line being uncovered by tests
           @dependency_pattern ||=
             RuboCop::AST::NodePattern.new(<<~PATTERN)
               (send
@@ -301,6 +302,7 @@ module Bundler
                 <(str $_version_constraint) ...>
               )
             PATTERN
+          # :nocov:
         end
 
         # The pattern to match the Gem::Specification block in the AST
