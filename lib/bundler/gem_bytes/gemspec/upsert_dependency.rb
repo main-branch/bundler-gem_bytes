@@ -101,6 +101,9 @@ module Bundler
         # Returns the content of the gemspec file with the new/updated dependency
         #
         # @param code [String] The content of the gemspec file
+        # @param path [String] This should be the path to the gemspspec file
+        #
+        #   path is used to generate error messages only
         #
         # @return [String] The updated gemspec content with the new/added dependency
         #
@@ -112,12 +115,9 @@ module Bundler
         #   updated_code = add_dependency.call(code)
         #   puts updated_code
         #
-        #
-        def call(code)
-          ast = RuboCop::AST::ProcessedSource.new(code, ruby_version).ast
-          buffer = Parser::Source::Buffer.new('(string)', source: code)
+        def call(code, path: '(string)')
           @found_gemspec_block = false
-          rewrite(buffer, ast).tap do |_result|
+          rewrite(*parse(code, path)).tap do |_result|
             raise ArgumentError, 'Gem::Specification block not found' unless found_gemspec_block
           end
         end
@@ -160,6 +160,22 @@ module Bundler
         end
 
         private
+
+        # Parses the given code into an AST
+        # @param code [String] The code to parse
+        # @param path [String] The path to the file being parsed (used for error messages only)
+        # @return [Array<Parser::AST::Node, Parser::Source::Buffer>] The AST and buffer
+        # @api private
+        def parse(code, path)
+          buffer = Parser::Source::Buffer.new(path, source: code)
+          processed_source = RuboCop::AST::ProcessedSource.new(code, ruby_version, path)
+          unless processed_source.valid_syntax?
+            raise "Invalid syntax in #{path}\n#{processed_source.diagnostics.map(&:render).join("\n")}"
+          end
+
+          ast = processed_source.ast
+          [buffer, ast]
+        end
 
         # Adds or updates the given dependency in the Gem::Specification block
         # @param node [Parser::AST::Node] The block node within the AST

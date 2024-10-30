@@ -27,7 +27,7 @@ module Bundler
         source = File.read(gemspec)
         updated_source = Bundler::GemBytes::Gemspec::UpsertDependency.new(
           dependency_type, gem_name, version_constraint, force: force
-        ).call(source)
+        ).call(source, path: gemspec)
         File.write(gemspec, updated_source)
       end
     end

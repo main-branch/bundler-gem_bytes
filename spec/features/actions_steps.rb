@@ -32,7 +32,7 @@ def command_err = @command_err
 def command_status = @command_status
 # rubocop:enable Style/TrivialAccessors
 
-def run_command(command, raise_on_fail: true, failure_message: "#{command[0]} failed")
+def run_command(command, raise_on_failure: true, failure_message: "#{command[0]} failed")
   out_buffer = StringIO.new
   out_pipe = ProcessExecuter::MonitoredPipe.new(out_buffer)
   err_buffer = StringIO.new
@@ -43,7 +43,7 @@ def run_command(command, raise_on_fail: true, failure_message: "#{command[0]} fa
     @command_err = err_buffer.string
     @command_status = status
 
-    raise "#{failure_message}: #{command_err}" if raise_on_fail && !command_status.success?
+    raise "#{failure_message}: #{command_err}" if raise_on_failure && !command_status.success?
   end
 end
 
@@ -74,7 +74,7 @@ end
 
 step 'I run :command' do |command|
   Dir.chdir(gem_project_dir) do
-    run_command(command.split, fail_on_error: false)
+    run_command(command.split, raise_on_failure: false)
   end
 end
 
