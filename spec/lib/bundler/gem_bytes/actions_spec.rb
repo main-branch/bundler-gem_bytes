@@ -48,4 +48,36 @@ RSpec.describe Bundler::GemBytes::Actions do
       end
     end
   end
+
+  describe '.remove_dependency' do
+    subject { instance.remove_dependency(gem_name) }
+
+    let(:gem_name) { 'rspec' }
+
+    it 'remove the dependency from the gemspec' do
+      # Make a temporary directory to work in
+      Dir.mktmpdir do |temp_dir|
+        Dir.chdir(temp_dir) do
+          # Create a new gemspec file
+          gemspec_file = 'my_gem.gemspec'
+          File.write(gemspec_file, <<~GEMSPEC)
+            Gem::Specification.new do |spec|
+              spec.name = 'my_gem'
+              spec.version = '0.1.0'
+              spec.add_development_dependency 'rspec', '~> 3.13'
+            end
+          GEMSPEC
+
+          # remove the dependency
+          instance.remove_dependency(gem_name)
+
+          # Read the gemspec file
+          gemspec_content = File.read(gemspec_file)
+
+          # Check that the dependency was removed
+          expect(gemspec_content).not_to include("spec.add_development_dependency 'rspec', '~> 3.13'")
+        end
+      end
+    end
+  end
 end

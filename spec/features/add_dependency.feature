@@ -1,6 +1,6 @@
-Feature: Add or update a dependency to the project's gemspec
+Feature: Runs a gembytes script
 
-  Scenario: Add a dependency
+  Scenario: Add and remove a dependency
 
     Given a gem project named "foo" with the bundler-gem_bytes plugin installed
     And the project has a gemspec containing:
@@ -8,11 +8,13 @@ Feature: Add or update a dependency to the project's gemspec
       Gem::Specification.new do |spec|
         spec.name = 'foo'
         spec.version = '1.0'
+        spec.add_dependency 'bar', '>= 0.9'
       end
       """
     And a gem-bytes script "gem_bytes_script" containing:
       """
-      add_dependency :runtime, 'foo', '>= 1.0'
+      remove_dependency 'bar'
+      add_dependency :runtime, 'baz', '>= 1.0'
       """
     When I run "bundle gem-bytes gem_bytes_script"
     Then the command should have succeeded
@@ -21,7 +23,7 @@ Feature: Add or update a dependency to the project's gemspec
       Gem::Specification.new do |spec|
         spec.name = 'foo'
         spec.version = '1.0'
-        spec.add_dependency 'foo', '>= 1.0'
+        spec.add_dependency 'baz', '>= 1.0'
       end
       """
 
