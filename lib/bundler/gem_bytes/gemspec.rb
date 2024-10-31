@@ -7,4 +7,5 @@ module Bundler
   end
 end
 
+require_relative 'gemspec/delete_dependency'
 require_relative 'gemspec/upsert_dependency'

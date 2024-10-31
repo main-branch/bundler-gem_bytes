@@ -304,7 +304,7 @@ module Bundler
           dependency_type == :development ? :add_development_dependency : :add_dependency
         end
 
-        # The patter to match a dependency declaration in the AST
+        # The pattern to match a dependency declaration in the AST
         # @return [RuboCop::AST::NodePattern] The dependency pattern
         # @api private
         def dependency_pattern

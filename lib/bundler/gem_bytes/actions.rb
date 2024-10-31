@@ -30,6 +30,24 @@ module Bundler
         ).call(source, path: gemspec)
         File.write(gemspec, updated_source)
       end
+
+      # Removes a dependency from the project's gemspec file
+      #
+      # @example
+      #   remove_dependency('rspec')
+      #
+      # @param gem_name [String] the name of the gem to add
+      # @param gemspec [String] the path to the gemspec file
+      #
+      # @return [void]
+      #
+      # @api public
+      #
+      def remove_dependency(gem_name, gemspec: Dir['*.gemspec'].first)
+        source = File.read(gemspec)
+        updated_source = Bundler::GemBytes::Gemspec::DeleteDependency.new(gem_name).call(source, path: gemspec)
+        File.write(gemspec, updated_source)
+      end
     end
   end
 end
