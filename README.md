@@ -39,6 +39,8 @@ own script**
   * [Example](#example)
   * [Handling Errors](#handling-errors)
 * [Development](#development)
+  * [Debugging](#debugging)
+  * [Releasing](#releasing)
 * [Contributing](#contributing)
   * [Commit message guidelines](#commit-message-guidelines)
   * [Pull request guidelines](#pull-request-guidelines)
@@ -47,7 +49,7 @@ own script**
 
 ## Installation
 
-Install this bundler plugin as follows:
+Install the `bundler gem-bytes` command as follows:
 
 ```shell
 bundle plugin install bunder-gem_bytes
@@ -79,11 +81,7 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run
 workflow. You can also run `bin/console` for an interactive prompt that will allow
 you to experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To
-release a new version, update the version number in `version.rb`, and then run
-`bundle exec rake release`, which will create a git tag for the version, push git
-commits and the created tag, and push the `.gem` file to
-[rubygems.org](https://rubygems.org).
+### Debugging
 
 To debug this gem it is recommended that you create a test project and install
 this plugin with bundler from source code as follows:
@@ -112,6 +110,25 @@ BUNDLE_IGNORE_CONFIG=TRUE bundle gem-bytes gem_bytes_script.rb
 
 # Repeat 4 - 6 until satisified :)
 ```
+
+### Releasing
+
+To release a new version of this gem, run `create-github-release [TYPE]` where
+TYPE is MAJOR, MINOR, or PATCH according to SemVer based on the changes that
+have been made since the last release:
+
+* MAJOR: changes that break compatibility with previous versions, such as removing a
+  public method, changing a method signature, or modifying the expected behavior of a
+  method.
+* MINOR: changes that add new features, enhance existing features, or deprecate
+  features in a backward-compatible way, such as adding a new method or improving
+  performance without breaking existing functionality.
+* PATCH: changes that fix bugs or make other small modifications that do not affect
+  the API or alter existing functionality, such as fixing user-facing typos or
+  updating user documentation.
+
+This command must be run from the project root directory with a clean worktree on the
+default branch.
 
 ## Contributing
 
