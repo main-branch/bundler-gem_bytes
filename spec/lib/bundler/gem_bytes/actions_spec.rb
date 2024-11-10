@@ -15,46 +15,29 @@ RSpec.describe Bundler::GemBytes::Actions do
   # These tests just make sure that calls to add_dependency are correctly delegated
   # to the UpsertDependency class.
   #
-  describe '.add_dependency' do
-    subject { instance.add_dependency(dependency_type, gem_name, version_constraint, force:) }
 
-    let(:dependency_type) { :development }
-    let(:gem_name) { 'rspec' }
-    let(:version_constraint) { '~> 3.13' }
+  describe '.gemspec' do
+    subject { instance.gemspec(block:) }
+
     let(:force) { false }
 
-    it 'adds the dependency to the gemspec' do
-      # Make a temporary directory to work in
-      Dir.mktmpdir do |temp_dir|
-        Dir.chdir(temp_dir) do
-          # Create a new gemspec file
-          gemspec_file = 'my_gem.gemspec'
-          File.write(gemspec_file, <<~GEMSPEC)
-            Gem::Specification.new do |spec|
-              spec.name = 'my_gem'
-              spec.version = '0.1.0'
-            end
-          GEMSPEC
-
-          # Add the dependency
-          instance.add_dependency(dependency_type, gem_name, version_constraint, force: force)
-
-          # Read the gemspec file
-          gemspec_content = File.read(gemspec_file)
-
-          # Check that the dependency was added
-          expect(gemspec_content).to include("spec.add_development_dependency 'rspec', '~> 3.13'")
-        end
-      end
+    let(:block) do
+      proc { |spec_var, spec|
+        # Self is an instance of bundler::GemBytes::Actions::Gemspec
+        # It has a context attribute which is our instance
+        context.instance_variable_set(:@block_called, true)
+        context.instance_variable_set(:@actual_spec_var, spec_var)
+        context.instance_variable_set(:@actual_spec, spec)
+      }
     end
-  end
 
-  describe '.remove_dependency' do
-    subject { instance.remove_dependency(gem_name) }
+    let(:block_called) { instance.instance_variable_get(:@block_called) }
+    let(:actual_spec_var) { instance.instance_variable_get(:@actual_spec_var) }
+    let(:actual_spec) { instance.instance_variable_get(:@actual_spec) }
 
-    let(:gem_name) { 'rspec' }
+    before { @block_called = false }
 
-    it 'remove the dependency from the gemspec' do
+    it 'calls the given block with the spec variable and spec' do
       # Make a temporary directory to work in
       Dir.mktmpdir do |temp_dir|
         Dir.chdir(temp_dir) do
@@ -64,18 +47,21 @@ RSpec.describe Bundler::GemBytes::Actions do
             Gem::Specification.new do |spec|
               spec.name = 'my_gem'
               spec.version = '0.1.0'
-              spec.add_development_dependency 'rspec', '~> 3.13'
             end
           GEMSPEC
 
-          # remove the dependency
-          instance.remove_dependency(gem_name)
+          # Call the gemspec method
+          instance.gemspec(&block)
 
-          # Read the gemspec file
-          gemspec_content = File.read(gemspec_file)
+          # Check that the block was called
+          expect(block_called).to be(true)
 
-          # Check that the dependency was removed
-          expect(gemspec_content).not_to include("spec.add_development_dependency 'rspec', '~> 3.13'")
+          # Check that the correct spec variable was passed to the block
+          expect(actual_spec_var).to eq(:spec)
+
+          # Check that the correct spec was passed to the block
+          expect(actual_spec.name).to eq('my_gem')
+          expect(actual_spec.version.to_s).to eq('0.1.0')
         end
       end
     end

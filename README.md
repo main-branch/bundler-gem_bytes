@@ -39,6 +39,7 @@ own script**
   * [Example](#example)
   * [Handling Errors](#handling-errors)
 * [Development](#development)
+  * [How this gem works](#how-this-gem-works)
   * [Debugging](#debugging)
   * [Releasing](#releasing)
 * [Contributing](#contributing)
@@ -81,6 +82,55 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run
 workflow. You can also run `bin/console` for an interactive prompt that will allow
 you to experiment.
 
+### How this gem works
+
+1. The user runs the `bundler gem-bytes` command from the command line, passing the
+   path or URL to a GemBytes script:
+
+   ```shell
+   bundler gem-bytes [SCRIPT]
+   ```
+
+2. The `plugins.rb` file (in the root directory of this project) defines
+   `Bundler::GemBytes::BundlerCommand` class as the handler for the `gem-bytes`
+   bundler command:
+
+    ```ruby
+    require 'bundler/gem_bytes'
+
+    # Register Bundler::GemBytes::BundlerCommand as the handler for the `gem-bytes`
+    # bundler command
+
+    Bundler::Plugin::API.command('gem-bytes', Bundler::GemBytes::BundlerCommand)
+    ```
+
+3. Bundler invokes the gem-bytes plugin by creating an instance of
+   `Bundler::GemBytes::BundlerCommand` and then calling `#exec(command, args)` on
+   that instance. Where:
+
+   * `command` is the bundler command given on the command line. It will always be
+     "gem-bytes".
+   * `args` is the array of any other arguments given on the command line after the
+     command. In this case, we expect the script path or URI.
+
+4. The `BundlerCommand` instance creates a `Bundler::GemBytes::ScriptExecutor`
+   instance and calls `#execute(path_or_uri)` on that instance. This method in turn
+   calls `Thor::Actions#apply(path_or_uri)` to load the external script and execute
+   it in the context of the `ScriptExecutor` instance.
+
+   The `#apply` method, part of the `Thor::Actions` module, loads and executes the
+   script within the context of the `ScriptExecutor` instance.
+
+   If an error occurs during script execution, `BundlerCommand` catches the error, outputs an error message to `stderr`, and exits with a status code of `1`.
+
+5. The `ScriptExecutor` class provides the environment/binding in which the GemBytes
+   script is executed, allowing the script to use instance methods and context from
+   `ScriptExecutor`. In addition to core Ruby and Active Support, the API available
+   to this script includes methods from both the
+   [`Thor::Actions`](https://github.com/rails/thor/wiki/Actions) and
+   `Bundler::GemBytes::Actions` modules, which provide utilities for file
+   manipulation, template generation, and other tasks essential for script execution.
+
 ### Debugging
 
 To debug this gem it is recommended that you create a test project and install
@@ -100,7 +150,9 @@ BUNDLE_IGNORE_CONFIG=TRUE bundle plugin install --path ../.. bundler-gem_bytes
 
 # 4. Create a gembytes script to add a development dependency on rubocop
 cat <<SCRIPT > gem_bytes_script.rb
-add_dependency :development, "rubocop", "~> 1.6"
+gemspec do
+  add_development_dependency "rubocop", "~> 1.68"
+end
 SCRIPT
 
 # 5. Modify code, set breakpoints, or add binding.{irb|pry} calls to the source
@@ -173,3 +225,34 @@ License](https://opensource.org/licenses/MIT).
 Everyone interacting in the Bundler::GemBytes project's codebases, issue trackers,
 chat rooms and mailing lists is expected to follow the [code of
 conduct](https://github.com/main-branch/bundler-gem_bytes/blob/main/CODE_OF_CONDUCT.md).
+
+gemspec path do |spec_var, spec|
+  add_runtime_dependency 'example', '~> 1.1', '>= 1.1.4'
+  add_development_dependency "rubocop", "~> 1.68"
+
+  remove_dependency "example"
+
+  attr "description", "#{spec.description}. Enhanced by GemBytes."
+  attr "author", ENV['USER']
+  attr "files", "Dir['lib/**/*.rb'] + Dir['bin/*']", quote: false
+  attr "authors", <% spec.authors %>.append('GemBytes').inspect, quote: false
+
+  remove_attr "license"
+
+  metadata "homepage_url", "https://github.com/example/"
+  remove_metadata "wiki_uri"
+
+  in_block("if RUBY_PLATFORM != 'java'", "end") do
+    add_development_dependency 'redcarpet', '~> 3.5'
+    add_development_dependency 'yard', '~> 0.9'
+    add_development_dependency 'yardstick', '~> 0.9'
+  end
+
+  code <<~CODE
+    if RUBY_PLATFORM != 'java'
+      <%= spec_var %>.add_development_dependency 'redcarpet', '~> 3.5'
+      <%= spec_var %>.add_development_dependency 'yard', '~> 0.9'
+      <%= spec_var %>.add_development_dependency 'yardstick', '~> 0.9'
+    end
+  CODE
+end

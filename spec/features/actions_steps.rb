@@ -78,8 +78,12 @@ step 'I run :command' do |command|
   end
 end
 
+def command_failed_message = <<~MESSAGE
+  Failed with status: #{command_status.exitstatus} and stderr: #{command_err.inspect}
+MESSAGE
+
 step 'the command should have succeeded' do
-  expect(command_status.success?).to eq(true)
+  expect(command_status.success?).to(eq(true), command_err)
 end
 
 step 'the command should have failed' do

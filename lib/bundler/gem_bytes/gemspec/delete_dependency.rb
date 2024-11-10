@@ -150,7 +150,6 @@ module Bundler
         end
 
         # Deletes any dependency on the given gem within the Gem::Specification block
-        # @param node [Parser::AST::Node] The block node within the AST
         # @return [void]
         # @api private
         def delete_dependencies
