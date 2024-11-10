@@ -56,6 +56,7 @@ unless RUBY_PLATFORM == 'java'
 
     YARD::Rake::YardocTask.new(:build) do |t|
       t.files = %w[lib/**/*.rb examples/**/*]
+      t.options = ['--markup-provider', 'redcarpet', '--markup', 'markdown']
       t.stats_options = ['--list-undoc']
     end
 

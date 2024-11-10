@@ -7,47 +7,37 @@ module Bundler
     # The API for GemBytes templates
     # @api public
     module Actions
-      # Adds (or updates) a dependency in the project's gemspec file
+      # The gemspec at `gemspec_path` is updated per instructions in `action_block`
       #
-      # @example
-      #   add_dependency(:development, 'rspec', '~> 3.13')
-      #   add_dependency(:runtime, 'activesupport', '>= 6.0.0')
+      # @example Adding a runtime dependency
+      #   actions = Actions.new
+      #   actions.gemspec(gemspec_path: 'test.gemspec') do
+      #     add_runtime_dependency 'rubocop', '~> 1.68'
+      #   end
       #
-      # @param dependency_type [Symbol] the type of dependency to add (either :development or :runtime)
-      # @param gem_name [String] the name of the gem to add
-      # @param version_constraint [String] the version constraint for the gem
-      # @param force [Boolean] whether to overwrite the existing dependency
-      # @param gemspec [String] the path to the gemspec file
+      # @param gemspec_path [String] the path to the gemspec file to process
       #
-      # @return [void]
+      #   Defaults to the first gemspec file found in the current directory.
       #
-      # @api public
+      # @yield a block with instructions to modify the gemspec
       #
-      def add_dependency(dependency_type, gem_name, version_constraint, force: false, gemspec: Dir['*.gemspec'].first)
-        source = File.read(gemspec)
-        updated_source = Bundler::GemBytes::Gemspec::UpsertDependency.new(
-          dependency_type, gem_name, version_constraint, force: force
-        ).call(source, path: gemspec)
-        File.write(gemspec, updated_source)
-      end
-
-      # Removes a dependency from the project's gemspec file
+      #   This block is run in the context of a {GemBytes::Actions::Gemspec} instance.
+      #   The instructions are methods defined by this instance (e.g.
+      #   `add_dependency`, `remove_dependency`, etc.)
       #
-      # @example
-      #   remove_dependency('rspec')
-      #
-      # @param gem_name [String] the name of the gem to add
-      # @param gemspec [String] the path to the gemspec file
+      # @yieldparam gemspec_name [Symbol] the name of the Gem::Specification varaible used in the gemspec
+      # @yieldparam gemspec [Gem::Specification] the evaluated gemspec
+      # @yieldreturn [String] the updated gemspec
       #
       # @return [void]
-      #
-      # @api public
-      #
-      def remove_dependency(gem_name, gemspec: Dir['*.gemspec'].first)
-        source = File.read(gemspec)
-        updated_source = Bundler::GemBytes::Gemspec::DeleteDependency.new(gem_name).call(source, path: gemspec)
-        File.write(gemspec, updated_source)
+      def gemspec(gemspec_path: Dir['*.gemspec'].first, &action_block)
+        source = File.read(gemspec_path)
+        action = Bundler::GemBytes::Actions::Gemspec.new(context: self)
+        updated_source = action.call(source, path: gemspec_path, &action_block)
+        File.write(gemspec_path, updated_source)
       end
     end
   end
 end
+
+require_relative 'actions/gemspec'

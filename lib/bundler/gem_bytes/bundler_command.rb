@@ -5,17 +5,15 @@ require 'bundler'
 module Bundler
   module GemBytes
     # A bundler command that adds features to your existing Ruby Gems project
-    #
     # @api public
-    #
     class BundlerCommand < Bundler::Plugin::API
-      # Called when the `gem-bytes` command is invoked
+      # Executes the `gem-bytes` command
       #
       # @example
-      #   BundlerCommand.new.exec('gem-bytes', ['path_or_uri_to_script'])
-      # @param _command [String] the command that was invoked (in this case, 'gem-bytes')
-      # @param args [Array<String>] any additional arguments passed to the command
-      # @raise [SystemExit] if there was an error executing the command
+      #   BundlerCommand.new.exec('gem-bytes', ['uri_or_path', *extra_args])
+      # @param _command [String] the invoked bundler command (in this case, 'gem-bytes')
+      # @param args [Array<String>] command arguments
+      # @raise [SystemExit] if an error occurs
       # @return [void]
       def exec(_command, args)
         uri_or_path = validate_args(args)
