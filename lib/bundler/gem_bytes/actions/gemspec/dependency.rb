@@ -50,11 +50,11 @@ module Bundler
         #   @return [String]
         #   @api public
         #
-        # @!attribute [r] version_constraint
-        #   The version constraint for the dependency (e.g., '~> 1.0')
+        # @!attribute [r] version_constraints
+        #   The version constraints for the dependency
         #   @example
-        #     dependency.version_constraint #=> "~> 1.68"
-        #   @return [String]
+        #     dependency.version_constraints #=> ["~> 1.68", ">= 1.68.3"]
+        #   @return [Array<String>]
         #   @api public
         #
         # @!method to_a()
@@ -64,8 +64,8 @@ module Bundler
         #   @return [Array]
         #   @api public
         #
-        Dependency = Struct.new(:method_name, :gem_name, :version_constraint) do
-          def to_a = [method_name, gem_name, version_constraint]
+        Dependency = Struct.new(:method_name, :gem_name, :version_constraints) do
+          def to_a = [method_name, gem_name, *version_constraints]
         end
       end
     end

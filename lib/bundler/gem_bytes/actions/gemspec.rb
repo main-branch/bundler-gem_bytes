@@ -181,12 +181,12 @@ module Bundler
         #   # Adds (or updates) the following line to the Gem::Specification block:
         #   # spec.add_dependency 'rails', '~> 7.0'
         # @param gem_name [String] the name of the gem to add a dependency on
-        # @param version_constraint [String] the version constraint on the gem
+        # @param version_constraints [Array[String]] one or more version constraints on the gem
         # @param method_name [String] the name of the method to use to add the dependency
         # @return [void]
         #
-        def add_dependency(gem_name, version_constraint, method_name: :add_dependency)
-          new_dependency = Dependency.new(method_name, gem_name, version_constraint)
+        def add_dependency(gem_name, *version_constraints, method_name: :add_dependency)
+          new_dependency = Dependency.new(method_name, gem_name, version_constraints)
           UpsertDependency.new(self, gemspec_block, receiver_name, dependencies).call(new_dependency)
         end
 
