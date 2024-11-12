@@ -160,6 +160,48 @@ RSpec.describe Bundler::GemBytes::Actions::Gemspec do
       }
     end
 
+    context 'when the gemspec has the given dependency and the new dependency has multiple version constraints' do
+      let(:block) do
+        proc { |_receiver_name, _spec|
+          add_dependency 'example', '~> 2.1', '>= 2.1.4'
+        }
+      end
+
+      let(:gemspec) { <<~GEMSPEC }
+        Gem::Specification.new do |spec|
+          spec.name = 'my_project'
+          spec.add_dependency 'example', '~> 1.0'
+        end
+      GEMSPEC
+
+      it 'is expected to update the dependency with the new version constraints' do
+        expect(subject).to eq(<<~GEMSPEC)
+          Gem::Specification.new do |spec|
+            spec.name = 'my_project'
+            spec.add_dependency 'example', '~> 2.1', '>= 2.1.4'
+          end
+        GEMSPEC
+      end
+    end
+
+    context 'when the gemspec has the given dependency with multiple version constraints' do
+      let(:gemspec) { <<~GEMSPEC }
+        Gem::Specification.new do |spec|
+          spec.name = 'my_project'
+          spec.add_dependency 'example', '~> 1.0', '>= 1.1.2'
+        end
+      GEMSPEC
+
+      it 'is expected to update the dependency with the new version constraints' do
+        expect(subject).to eq(<<~GEMSPEC)
+          Gem::Specification.new do |spec|
+            spec.name = 'my_project'
+            spec.add_dependency 'example', '~> 2.0'
+          end
+        GEMSPEC
+      end
+    end
+
     context 'when the gemspec block is empty' do
       let(:gemspec) { <<~GEMSPEC }
         Gem::Specification.new do |spec|

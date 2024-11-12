@@ -166,7 +166,7 @@ module Bundler
             # :nocov: supress false reporting of no coverage of multiline string literals on JRuby
             "#{receiver_name}.#{new_method_name(existing_dependency)} " \
               "#{q}#{new_dependency.gem_name}#{q}, " \
-              "#{q}#{new_dependency.version_constraint}#{q}"
+              "#{new_dependency.version_constraints.map { |vc| "#{q}#{vc}#{q}" }.join(', ')}"
             # :nocov:
           end
 
