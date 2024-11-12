@@ -174,6 +174,19 @@ module Bundler
           dependencies << DependencyNode.new(node, Dependency.new(*match))
         end
 
+        # Removes a dependency from the Gem::Specification block
+        #
+        # @example
+        #   remove_dependency 'rubocop'
+        #   # Removes the dependency on 'rubocop' from the Gem::Specification block:
+        #   # spec.add_development_dependency 'rubocop', '~> 1.68'
+        # @param gem_name [String] the name of the gem to remove a dependency on
+        # @return [void]
+        #
+        def remove_dependency(gem_name)
+          DeleteDependency.new(self, gemspec_block, receiver_name, dependencies).call(gem_name)
+        end
+
         # Adds or updates a dependency to the Gem::Specification block
         #
         # @example
@@ -305,6 +318,7 @@ module Bundler
   end
 end
 
+require_relative 'gemspec/delete_dependency'
 require_relative 'gemspec/dependency'
 require_relative 'gemspec/dependency_node'
 require_relative 'gemspec/upsert_dependency'
