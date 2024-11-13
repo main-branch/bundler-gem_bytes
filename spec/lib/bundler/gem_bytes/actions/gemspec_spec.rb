@@ -49,6 +49,29 @@ RSpec.describe Bundler::GemBytes::Actions::Gemspec do
     end
 
     context 'when the gemspec has a gem specification section' do
+      let(:gemspec) { <<~GEMSPEC }
+        Gem::Specification.new do |spec|
+          spec.name = 'example'
+          spec.version = '1.0'
+          spec.add_dependency 'example', '~> 1.0', '>= 1.0.5'
+        end
+      GEMSPEC
+
+      it 'is expected to have read the Gem::Specification block' do
+        subject
+
+        gem_specification = instance.gem_specification
+        expect(gem_specification).to be_a(Gem::Specification)
+        expect(gem_specification.name).to eq('example')
+        expect(gem_specification.version.to_s).to eq('1.0')
+
+        expect(gem_specification.dependencies.size).to eq(1)
+        dependency = gem_specification.dependencies[0]
+
+        expect(dependency.name).to eq('example')
+        expect(dependency.requirement.to_s).to eq('~> 1.0, >= 1.0.5')
+      end
+
       context 'and it is an empty block' do
         let(:gemspec) { <<~GEMSPEC }
           Gem::Specification.new do |spec|
@@ -122,6 +145,56 @@ RSpec.describe Bundler::GemBytes::Actions::Gemspec do
               expected_declaration(:add_development_dependency, 'example3', '~> 3.0')
             ]
           )
+        end
+      end
+
+      context 'and it contains an attribute' do
+        let(:gemspec) { <<~GEMSPEC }
+          Gem::Specification.new do |spec|
+            spec.name = 'example'
+          end
+        GEMSPEC
+
+        it 'is expected to have found the attribute' do
+          subject
+          attribute_nodes = instance.attributes
+
+          expect(attribute_nodes.size).to eq(1)
+
+          attribute = attribute_nodes[0].attribute
+          expect(attribute.name).to eq('name')
+          expect(attribute.value.to_sexp_array).to eq([:str, 'example'])
+
+          node = attribute_nodes[0].node
+          expect(node.to_sexp_array).to eq([:send, %i[lvar spec], :name=, [:str, 'example']])
+        end
+      end
+
+      context 'and it contains more than one attribute' do
+        let(:gemspec) { <<~GEMSPEC }
+          Gem::Specification.new do |spec|
+            spec.name = 'example'
+            spec.version = '1.0'
+            spec.authors = ['Alice', 'Bob']
+            spec.email = 'john@example.com'
+          end
+        GEMSPEC
+
+        it 'is expected to have found the attributes' do
+          subject
+
+          attribute_nodes = instance.attributes
+
+          expect(instance.attributes.map(&:attribute).map(&:name)).to eq(%w[name version authors email])
+
+          # Pick a single entry to check
+
+          attribute = attribute_nodes[1].attribute
+          expect(attribute.name).to eq('version')
+          expect(attribute.value.to_sexp_array).to eq([:str, '1.0'])
+
+          node = attribute_nodes[1].node
+          expect(node.to_sexp_array).to eq([:send, %i[lvar spec], :version=, [:str, '1.0']])
         end
       end
 

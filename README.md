@@ -227,6 +227,7 @@ chat rooms and mailing lists is expected to follow the [code of
 conduct](https://github.com/main-branch/bundler-gem_bytes/blob/main/CODE_OF_CONDUCT.md).
 
 gemspec path do |spec_var, spec|
+  add_dependency 'example', '~> 1.1'
   add_runtime_dependency 'example', '~> 1.1', '>= 1.1.4'
   add_development_dependency "rubocop", "~> 1.68"
 
@@ -240,12 +241,13 @@ gemspec path do |spec_var, spec|
   remove_attr "license"
 
   metadata "homepage_url", "https://github.com/example/"
+
   remove_metadata "wiki_uri"
 
   in_block("if RUBY_PLATFORM != 'java'", "end") do
-    add_development_dependency 'redcarpet', '~> 3.5'
-    add_development_dependency 'yard', '~> 0.9'
-    add_development_dependency 'yardstick', '~> 0.9'
+    development_dependency 'redcarpet', '~> 3.5'
+    development_dependency 'yard', '~> 0.9'
+    development_dependency 'yardstick', '~> 0.9'
   end
 
   code <<~CODE
