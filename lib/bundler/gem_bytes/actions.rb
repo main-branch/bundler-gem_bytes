@@ -33,7 +33,7 @@ module Bundler
       def gemspec(gemspec_path: Dir['*.gemspec'].first, &action_block)
         source = File.read(gemspec_path)
         action = Bundler::GemBytes::Actions::Gemspec.new(context: self)
-        updated_source = action.call(source, path: gemspec_path, &action_block)
+        updated_source = action.call(source, source_path: gemspec_path, &action_block)
         File.write(gemspec_path, updated_source)
       end
     end

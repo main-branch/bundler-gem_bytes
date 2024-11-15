@@ -12,14 +12,15 @@ RSpec.describe Bundler::GemBytes::Actions::Gemspec do
       let(:expected_attributes) do
         # :nocov: JRuby give false positive for this line being uncovered by tests
         {
-          receiver_name: nil,
-          gemspec_block: nil,
-          dependencies: []
+          data: nil,
+          context: context
         }
         # :nocov:
       end
 
-      it { is_expected.to have_attributes(expected_attributes) }
+      it 'is expected to have the expected data attributes' do
+        expect(subject).to have_attributes(expected_attributes)
+      end
     end
   end
 
@@ -60,7 +61,7 @@ RSpec.describe Bundler::GemBytes::Actions::Gemspec do
       it 'is expected to have read the Gem::Specification block' do
         subject
 
-        gem_specification = instance.gem_specification
+        gem_specification = instance.data.gemspec_object
         expect(gem_specification).to be_a(Gem::Specification)
         expect(gem_specification.name).to eq('example')
         expect(gem_specification.version.to_s).to eq('1.0')
@@ -80,17 +81,22 @@ RSpec.describe Bundler::GemBytes::Actions::Gemspec do
 
         it 'is expected to found the receiver name' do
           subject
-          expect(instance.receiver_name).to eq(:spec)
+          expect(instance.data.gemspec_object_name).to eq(:spec)
         end
 
         it 'is expected to have found the gemspec block' do
           subject
-          expect(instance.gemspec_block.present?).to eq(true)
+          expect(instance.data.gemspec_ast.present?).to eq(true)
         end
 
         it 'is expected to have found no dependencies' do
           subject
-          expect(instance.dependencies).to be_empty
+          expect(instance.data.dependencies).to be_empty
+        end
+
+        it 'is expected to have found no attributes' do
+          subject
+          expect(instance.data.attributes).to be_empty
         end
       end
 
@@ -103,11 +109,12 @@ RSpec.describe Bundler::GemBytes::Actions::Gemspec do
 
         it 'is expected to have found the dependency' do
           subject
-          expect(instance.dependencies).to have_attributes(size: 1)
+          dependencies = instance.data.dependencies
+          expect(dependencies).to have_attributes(size: 1)
           expected_node = [:send, %i[lvar spec], :add_dependency, [:str, 'example'], [:str, '~> 1.0']]
-          expect(instance.dependencies[0].node.to_sexp_array).to eq(expected_node)
+          expect(dependencies[0].node.to_sexp_array).to eq(expected_node)
           expected_declaration = [:add_dependency, 'example', '~> 1.0']
-          expect(instance.dependencies[0].dependency.to_a).to eq(expected_declaration)
+          expect(dependencies[0].dependency.to_a).to eq(expected_declaration)
         end
       end
 
@@ -130,15 +137,16 @@ RSpec.describe Bundler::GemBytes::Actions::Gemspec do
 
         it 'is expected to have found the dependencies' do
           subject
-          expect(instance.dependencies).to have_attributes(size: 3)
-          expect(instance.dependencies.map { |d| d.node.to_sexp_array }).to eq(
+          dependencies = instance.data.dependencies
+          expect(dependencies).to have_attributes(size: 3)
+          expect(dependencies.map { |d| d.node.to_sexp_array }).to eq(
             [
               expected_node(:add_dependency, 'example1', '~> 1.0'),
               expected_node(:add_runtime_dependency, 'example2', '~> 2.0'),
               expected_node(:add_development_dependency, 'example3', '~> 3.0')
             ]
           )
-          expect(instance.dependencies.map { |d| d.dependency.to_a }).to eq(
+          expect(dependencies.map { |d| d.dependency.to_a }).to eq(
             [
               expected_declaration(:add_dependency, 'example1', '~> 1.0'),
               expected_declaration(:add_runtime_dependency, 'example2', '~> 2.0'),
@@ -157,7 +165,7 @@ RSpec.describe Bundler::GemBytes::Actions::Gemspec do
 
         it 'is expected to have found the attribute' do
           subject
-          attribute_nodes = instance.attributes
+          attribute_nodes = instance.data.attributes
 
           expect(attribute_nodes.size).to eq(1)
 
@@ -183,9 +191,9 @@ RSpec.describe Bundler::GemBytes::Actions::Gemspec do
         it 'is expected to have found the attributes' do
           subject
 
-          attribute_nodes = instance.attributes
+          attribute_nodes = instance.data.attributes
 
-          expect(instance.attributes.map(&:attribute).map(&:name)).to eq(%w[name version authors email])
+          expect(attribute_nodes.map(&:attribute).map(&:name)).to eq(%w[name version authors email])
 
           # Pick a single entry to check
 
@@ -206,19 +214,19 @@ RSpec.describe Bundler::GemBytes::Actions::Gemspec do
         GEMSPEC
 
         let(:block) do
-          proc { |receiver_name, spec|
-            @test_receiver_name = receiver_name
-            @test_spec = spec
+          proc { |gemspec_object_name, gemspec_object|
+            @test_gemspec_object_name = gemspec_object_name
+            @test_gemspec_object = gemspec_object
           }
         end
 
         it 'is expected to call the block with the receiver_name and Gem::Specification object' do
           subject
-          receiver_name = instance.instance_variable_get('@test_receiver_name')
-          spec = instance.instance_variable_get('@test_spec')
-          expect(receiver_name).to eq(:spec)
-          expect(spec).to be_a(Gem::Specification)
-          expect(spec.name).to eq('example')
+          gemspec_object_name = instance.instance_variable_get('@test_gemspec_object_name')
+          gemspec_object = instance.instance_variable_get('@test_gemspec_object')
+          expect(gemspec_object_name).to eq(:spec)
+          expect(gemspec_object).to be_a(Gem::Specification)
+          expect(gemspec_object.name).to eq('example')
         end
       end
     end
