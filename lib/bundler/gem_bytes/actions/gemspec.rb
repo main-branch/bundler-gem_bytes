@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'forwardable'
 require 'parser/current'
 require 'rubocop-ast'
 require 'active_support/core_ext/object'
@@ -36,90 +37,29 @@ module Bundler
       #     remove_config_metadata 'homepage'
       #   end
       #
-      # @!attribute [r] code
-      #    The contents of the gemspec file passed to #call
-      #
-      #    @return [String]
-      #    @api private
-      #
-      # @!attribute [r] action_block
-      #   The block passed to #call containing the instructions to update the gemspec
-      #
-      #   @return [Proc]
-      #   @api private
-      #
-      # @!attribute [r] receiver_name
-      #   The name of the receiver for the Gem::Specification block
-      #
-      #    i.e. 'spec' in `spec.add_dependency 'rubocop', '~> 1.0'`
-      #
-      #   Only valid after calling `#call`. Returns nil if the receiver was not found.
-      #
-      #   @return [Symbol, nil]
-      #   @api private
-      #
-      # @!attribute [r] gemspec_block
-      #   The AST node representing the Gem::Specification block
-      #
-      #   Only valid after calling `#call`. Returns nil if the block was not found.
-      #
-      #   @return [Parser::AST::Node, nil]
-      #   @api private
-      #
-      # @!attribute [r] dependencies
-      #   The dependency declarations found in the gemspec file
-      #
-      #   Only valid after calling `#call`. Returns an empty array if no dependencies were found.
-      #
-      #   @return [Array<DependencyNode>]
-      #   @api private
-      #
-      # @!attribute [r] attributes
-      #   The attributes found in the gemspec file
-      #
-      #   Only valid after calling `#call`. Returns an empty array if no attributes were found.
-      #
-      #   @return [Array<AttributeNode>]
-      #   @api private
-      #
-      # @!attribute [r] context
-      #   The actions object that called this action (used for testing)
-      #
-      #   @return [Array<Dependency>]
-      #   @api private
-      #
-      # @!attribute [r] processing_gemspec_block
-      #   Indicates that the gemspec block was found and is being processed
-      #
-      #   @return [Boolean]
-      #   @api private
-      #
-      # @!attribute [r] gem_specification
-      #   The Gem::Specification object loaded from the gemspec file
-      #
-      #   Only valid after calling `#call`. Returns nil if the Gem::Specification block was not found.
-      #   @return [Gem::Specification, nil]
-      #   @api private
-      #
       # @api public
       #
-      class Gemspec < Parser::TreeRewriter # rubocop:disable Metrics/ClassLength
+      class Gemspec < Parser::TreeRewriter
+        extend Forwardable
+
         # Create a new Gemspec action
         #
         # @example
         #   Gemspec.new(context: self)
-        # @param context [Bundler::GemBytes::Actions] The context in which the action is being run (for testing)
+        # @param context [Bundler::GemBytes::ScriptExecuter] The context in which the action is being run
         #
         def initialize(context:)
           @context = context
           super()
-          initialize_private_attrs
         end
+
+        def_delegators :data, :attributes, :dependencies, :gemspec_ast, :gemspec_object,
+                       :gemspec_object_name, :source, :source_path, :source_ast, :source_buffer
 
         # Processes the given gemspec file and returns the updated content
         #
         # @example
-        #   updated_gemspec_content = Gemspec.new.call(gemspec_content, path: gemspec_path) do
+        #   updated_gemspec_content = Gemspec.new.call(gemspec_content, source_path: gemspec_path) do
         #     add_dependency 'activesupport', '~> 7.0'
         #   end
         # @param code [String] The content of the gemspec file
@@ -127,27 +67,36 @@ module Bundler
         # @return [String] The updated gemspec file content
         # @raise [ArgumentError] if the Gem Specification block is not found in the given gemspec content
         #
-        def call(code, path: '(string)', &action_block)
-          initialize_private_attrs
-          @code = code
+        def call(source, source_path: '(string)', &action_block)
+          @data = GemSpecification.new(source, source_path)
           @action_block = action_block
-          buffer, ast = parse(code, path)
-          rewrite(buffer, ast).tap do |_result|
-            raise ArgumentError, 'Gem::Specification block not found' unless gemspec_block.present?
+          @processing_gemspec_block = false
+          rewrite(source_buffer, source_ast).tap do |_result|
+            raise ArgumentError, 'Gem::Specification block not found' unless gemspec_ast.present?
           end
         end
 
-        attr_reader :receiver_name, :gemspec_block, :dependencies, :attributes,
-                    :processing_gemspec_block, :action_block, :code,
-                    :context, :gem_specification
+        # The ScriptExecuter object that called this action (used for testing)
+        # @return [Bundler::GemBytes::ScriptExecuter]
+        # @api private
+        attr_reader :context
+
+        # Indicates that the gemspec block was found and is being processed
+        # @return [Boolean]
+        # @api private
+        attr_reader :processing_gemspec_block
+
+        # The block passed to #call containing the instructions to update the gemspec
+        # @return [Proc]
+        # @api private
+        attr_reader :action_block
+
+        # The GemSpecification object containing information about the gemspec file
+        # @return [GemSpecification]
+        # @api private
+        attr_reader :data
 
         alias processing_gemspec_block? processing_gemspec_block
-
-        # The currently running Ruby version as a float (MAJOR.MINOR only)
-        #
-        # @return [Float] The Ruby version number, e.g., 3.0
-        # @api private
-        def ruby_version = RUBY_VERSION.match(/^(?<version>\d+\.\d+)/)['version'].to_f
 
         # Handles block nodes within the AST to locate the Gem Specification block
         #
@@ -158,13 +107,12 @@ module Bundler
           # If already processing the Gem Specification block, this must be some other nested block
           return if processing_gemspec_block?
 
-          @receiver_name = gem_specification_pattern.match(node)
+          data.gemspec_object_name = gem_specification_pattern.match(node)
 
-          return unless receiver_name
+          return unless gemspec_object_name
 
           @processing_gemspec_block = true
-          @gemspec_block = node
-          @gem_specification = load_gem_specification
+          data.gemspec_ast = node
 
           super # process the children of this node to find interesting parts of the Gem::Specification block
 
@@ -173,7 +121,9 @@ module Bundler
           # Call the action_block to do requested modifications the Gem::Specification block.
           # The default receiver in the block is this object.
           # receiver_name and gem_specification are passed as arguments.
-          instance_exec(receiver_name, gem_specification, &action_block) if action_block
+          return unless action_block
+
+          instance_exec(gemspec_object_name, gemspec_object, &action_block)
         end
 
         # Handles `send` nodes within the AST to locate dependency calls
@@ -186,35 +136,7 @@ module Bundler
         def on_send(node)
           return unless processing_gemspec_block?
 
-          handle_dependency(node) ||
-            handle_attribute(node)
-        end
-
-        # Save the dependency if the node is a dependency
-        # @param node [Parser::AST::Node] the node to check if it is a dependency
-        # @return [Boolean] true if the node is a dependency, false otherwise
-        # @api private
-        def handle_dependency(node)
-          return false unless (match = dependency_pattern.match(node))
-
-          dependencies << DependencyNode.new(node, Dependency.new(*match))
-
-          true
-        end
-
-        # Save the attribute if the node is an attribute
-        # @param node [Parser::AST::Node] the node to check if it is an attribute
-        # @return [Boolean] true if the node is an attribute, false otherwise
-        # @api private
-        def handle_attribute(node)
-          return false unless (match = attribute_pattern.match(node))
-          return false unless match[0].end_with?('=')
-
-          name = match[0][0..-2]
-          value = match[1]
-          attributes << AttributeNode.new(node, Attribute.new(name, value))
-
-          true
+          handle_dependency(node) || handle_attribute(node)
         end
 
         # Removes a dependency from the Gem::Specification block
@@ -226,8 +148,9 @@ module Bundler
         # @param gem_name [String] the name of the gem to remove a dependency on
         # @return [void]
         #
+        # TODO: just pass data to DeleteDependency.new
         def remove_dependency(gem_name)
-          DeleteDependency.new(self, gemspec_block, receiver_name, dependencies).call(gem_name)
+          DeleteDependency.new(self, gemspec_ast, gemspec_object_name, dependencies).call(gem_name)
         end
 
         # Adds or updates a dependency to the Gem::Specification block
@@ -241,9 +164,10 @@ module Bundler
         # @param method_name [String] the name of the method to use to add the dependency
         # @return [void]
         #
+        # TODO: just pass data to DeleteDependency.new
         def add_dependency(gem_name, *version_constraints, method_name: :add_dependency)
           new_dependency = Dependency.new(method_name, gem_name, version_constraints)
-          UpsertDependency.new(self, gemspec_block, receiver_name, dependencies).call(new_dependency)
+          UpsertDependency.new(self, gemspec_ast, gemspec_object_name, dependencies).call(new_dependency)
         end
 
         # Adds or updates a dependency to the Gem::Specification block
@@ -276,60 +200,31 @@ module Bundler
 
         private
 
-        # Initializes the private attributes of the Gemspec action
-        #
-        # This is done from #initialize and at the beginning of #call
-        #
-        # @return [void]
+        # Save the dependency if the node is a dependency
+        # @param node [Parser::AST::Node] the node to check if it is a dependency
+        # @return [Boolean] true if the node is a dependency, false otherwise
         # @api private
-        def initialize_private_attrs
-          # Used internally during #call
-          @processing_gemspec_block = false
+        def handle_dependency(node)
+          return false unless (match = dependency_pattern.match(node))
 
-          # Supplied to #call
-          @code = nil
-          @action_block = nil
+          dependencies << DependencyNode.new(node, Dependency.new(*match))
 
-          # Valid after calling #call
-          @receiver_name = nil
-          @gemspec_block = nil
-          @dependencies = []
-          @attributes = []
-          @gem_specification = nil
+          true
         end
 
-        # Load the gemspec file into a Gem::Specification object
-        # @return [Gem::Specification] The Gem::Specification object
+        # Save the attribute if the node is an attribute
+        # @param node [Parser::AST::Node] the node to check if it is an attribute
+        # @return [Boolean] true if the node is an attribute, false otherwise
         # @api private
-        def load_gem_specification
-          # Store the current $LOAD_PATH
-          original_load_path = $LOAD_PATH.dup
+        def handle_attribute(node)
+          return false unless (match = attribute_pattern.match(node))
+          return false unless match[0].end_with?('=')
 
-          # Temporarily add 'lib' to the $LOAD_PATH
-          lib_path = File.expand_path('lib', Dir.pwd)
-          $LOAD_PATH.unshift(lib_path)
+          name = match[0][0..-2]
+          value = match[1]
+          attributes << AttributeNode.new(node, Attribute.new(name, value))
 
-          # Evaluate the gemspec file
-          eval(code, binding, '.').tap do # rubocop:disable Security/Eval
-            # Restore the original $LOAD_PATH
-            $LOAD_PATH.replace(original_load_path)
-          end
-        end
-
-        # Parses the given code into an AST
-        # @param code [String] The code to parse
-        # @param path [String] The path to the file being parsed (used for error messages only)
-        # @return [Array<Parser::AST::Node, Parser::Source::Buffer>] The AST and buffer
-        # @api private
-        def parse(code, path)
-          buffer = Parser::Source::Buffer.new(path, source: code)
-          processed_source = RuboCop::AST::ProcessedSource.new(code, ruby_version, path)
-          unless processed_source.valid_syntax?
-            raise "Invalid syntax in #{path}\n#{processed_source.diagnostics.map(&:render).join("\n")}"
-          end
-
-          ast = processed_source.ast
-          [buffer, ast]
+          true
         end
 
         # The pattern to match the Gem::Specification block in the AST
@@ -350,7 +245,7 @@ module Bundler
           @dependency_pattern ||=
             RuboCop::AST::NodePattern.new(<<~PATTERN)
               (send
-                { (send _ :#{receiver_name}) | (lvar :#{receiver_name}) }
+                { (send _ :#{gemspec_object_name}) | (lvar :#{gemspec_object_name}) }
                 ${ :add_dependency :add_runtime_dependency :add_development_dependency }
                 (str $_gem_name)
                 <(str $_version_constraint) ...>
@@ -367,7 +262,7 @@ module Bundler
           @attribute_pattern ||=
             RuboCop::AST::NodePattern.new(<<~PATTERN)
               (send
-                (lvar :#{receiver_name}) $_name $_value
+                (lvar :#{gemspec_object_name}) $_name $_value
               )
             PATTERN
           # :nocov:
@@ -379,6 +274,7 @@ end
 
 require_relative 'gemspec/attribute'
 require_relative 'gemspec/attribute_node'
+require_relative 'gemspec/gem_specification'
 require_relative 'gemspec/delete_dependency'
 require_relative 'gemspec/dependency'
 require_relative 'gemspec/dependency_node'

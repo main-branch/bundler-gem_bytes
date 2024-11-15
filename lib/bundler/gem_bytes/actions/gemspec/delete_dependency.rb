@@ -88,7 +88,7 @@ module Bundler
           private
 
           # Expand the range for a node to include any leading whitespace and newline
-          # @param dependency [DependencyNode] The node to remove
+          # @param dependency_node [DependencyNode] The node to remove
           # @return [Parser::Source::Range] The range of the whole line including whitespace
           # @api private
           def full_line_range(dependency_node)
