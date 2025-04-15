@@ -50,27 +50,3 @@ jobs:
 
       - name: Run rake
         run: bundle exec rake
-
-  coverage:
-    name: Report test coverage to CodeClimate
-
-    needs: [build]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Initialize Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 3.1
-          bundler-cache: true
-
-      - name: Report test coverage
-        uses: paambaati/codeclimate-action@v9
-        env:
-          CC_TEST_REPORTER_ID: 7fd2c226e4e72c37477e999ef826a19cb2dd2fd2e30db8747bbc09bcfd738215
-        with:
-          coverageCommand: bundle exec rake spec
-          coverageLocations: ${{github.workspace}}/coverage/lcov/*.lcov:lcov
