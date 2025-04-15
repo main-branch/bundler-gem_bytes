@@ -7,9 +7,6 @@ Version](https://badge.fury.io/rb/bundler-gem_bytes.svg)](https://badge.fury.io/
 Log](https://img.shields.io/badge/CHANGELOG-Latest-green)](https://rubydoc.info/gems/bundler-gem_bytes/file/CHANGELOG.md)
 [![Build
 Status](https://github.com/main-branch/bundler-gem_bytes/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/main-branch/bundler-gem_bytes/actions/workflows/continuous-integration.yml)
-[![Maintainability](https://api.codeclimate.com/v1/badges/2468fc247e5d66fc179f/maintainability)](https://codeclimate.com/github/main-branch/bundler-gem_bytes/maintainability)
-[![Test
-Coverage](https://api.codeclimate.com/v1/badges/2468fc247e5d66fc179f/test_coverage)](https://codeclimate.com/github/main-branch/bundler-gem_bytes/test_coverage)
 [![Conventional
 Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
 [![Slack](https://img.shields.io/badge/slack-main--branch/bundler--gem_bytes-yellow.svg?logo=slack)](https://main-branch.slack.com/archives/C07RKRKTLDT)
@@ -36,15 +33,15 @@ own script**
 
 * [Installation](#installation)
 * [Usage](#usage)
-  * [Example](#example)
-  * [Handling Errors](#handling-errors)
+    * [Example](#example)
+    * [Handling Errors](#handling-errors)
 * [Development](#development)
-  * [How this gem works](#how-this-gem-works)
-  * [Debugging](#debugging)
-  * [Releasing](#releasing)
+    * [How this gem works](#how-this-gem-works)
+    * [Debugging](#debugging)
+    * [Releasing](#releasing)
 * [Contributing](#contributing)
-  * [Commit message guidelines](#commit-message-guidelines)
-  * [Pull request guidelines](#pull-request-guidelines)
+    * [Commit message guidelines](#commit-message-guidelines)
+    * [Pull request guidelines](#pull-request-guidelines)
 * [License](#license)
 * [Code of Conduct](#code-of-conduct)
 
