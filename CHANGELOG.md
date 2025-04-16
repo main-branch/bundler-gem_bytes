@@ -5,6 +5,20 @@ All notable changes to the process_executer gem will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1](https://github.com/main-branch/bundler-gem_bytes/compare/v0.2.0...v0.2.1) (2025-04-16)
+
+
+### Features
+
+* Add a gemspec action to make modification to a project gemspec ([d83d145](https://github.com/main-branch/bundler-gem_bytes/commit/d83d14598922fe8b54de12b92232e8cae6e6e668))
+* Add the remove_dependency sub-action to the gemspec action ([ba1ff7b](https://github.com/main-branch/bundler-gem_bytes/commit/ba1ff7b8401ff7dd29c37f457da14452ce55c8f2))
+
+
+### Bug Fixes
+
+* Allow dependencies to have multiple version constraints ([4217151](https://github.com/main-branch/bundler-gem_bytes/commit/421715118af964e5e53ae35cda445e5b2dfd4f48))
+* Automate commit-to-publish workflow ([3d018da](https://github.com/main-branch/bundler-gem_bytes/commit/3d018da4b2ac3caceaa81dd12a0b7771fc03db18))
+
 ## v0.2.0 (2024-10-30)
 
 [Full Changelog](https://github.com/main-branch/bundler-gem_bytes/compare/v0.1.0..v0.2.0)
