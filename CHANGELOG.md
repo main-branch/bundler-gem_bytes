@@ -5,6 +5,13 @@ All notable changes to the process_executer gem will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2](https://github.com/main-branch/bundler-gem_bytes/compare/v0.2.1...v0.2.2) (2025-04-16)
+
+
+### Bug Fixes
+
+* Automate commit-to-publish workflow version file path wrong ([4220bd4](https://github.com/main-branch/bundler-gem_bytes/commit/4220bd4428cc4841d56c65fb86540d9237b0944b))
+
 ## [0.2.1](https://github.com/main-branch/bundler-gem_bytes/compare/v0.2.0...v0.2.1) (2025-04-16)
 
 
