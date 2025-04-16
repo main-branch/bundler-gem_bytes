@@ -5,7 +5,7 @@
       "release-type": "ruby",
       "package-name": "bundler-gem_bytes",
       "changelog-path": "CHANGELOG.md",
-      "version-file": "lib/bundler-gem_bytes/version.rb",
+      "version-file": "lib/bundler/gem_bytes/version.rb",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
       "draft": false,
