@@ -3,6 +3,6 @@
 module Bundler
   module GemBytes
     # The version of this gem
-    VERSION = '0.2.2'
+    VERSION = '0.2.3'
   end
 end
