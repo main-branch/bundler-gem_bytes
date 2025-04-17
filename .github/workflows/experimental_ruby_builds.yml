@@ -1,21 +1,16 @@
 name: Experimental Ruby Builds
 
 on:
-  push:
-    branches: [main]
-
   workflow_dispatch:
 
 env:
   # SimpleCov suggests setting the JRuby --debug flag to ensure that coverage
   # results from JRuby are complete.
   JRUBY_OPTS: --debug
-  # List lines that are not covered by tests (from SimpleCov::RSpec)
-  LIST_UNCOVERED_LINES: "true"
 
 # Experimental platforms / Ruby versions:
 #  - Ubuntu: MRI (head), TruffleRuby (head), JRuby (head)
-#  - Windows: MRI (head), JRuby (head)
+#  - Windows: MRI (head), JRuby (head), JRuby (9.4)
 
 jobs:
   build:
@@ -24,20 +19,43 @@ jobs:
     runs-on: ${{ matrix.operating-system }}
     continue-on-error: true
 
+    env:
+      FAIL_ON_LOW_COVERAGE: ${{ matrix.fail_on_low_coverage }}
+      GIT_AUTHOR_NAME: Git Author
+      GIT_AUTHOR_EMAIL: git_author@example.com
+      GIT_COMMITTER_NAME: Git Committer
+      GIT_COMMITTER_EMAIL: git_committer@example.com
+
     strategy:
       fail-fast: false
       matrix:
+        fail_on_low_coverage: [true]
         include:
+          - ruby: "3.1"
+            operating-system: windows-latest
+            fail_on_low_coverage: false
           - ruby: head
             operating-system: ubuntu-latest
           - ruby: head
             operating-system: windows-latest
+          - ruby: "truffleruby-24"
+            operating-system: ubuntu-latest
+            fail_on_low_coverage: false
           - ruby: truffleruby-head
             operating-system: ubuntu-latest
+            fail_on_low_coverage: false
+          - ruby: "jruby-9.4"
+            operating-system: ubuntu-latest
+            fail_on_low_coverage: false
+          - ruby: "jruby-9.4"
+            operating-system: windows-latest
+            fail_on_low_coverage: false
           - ruby: jruby-head
             operating-system: ubuntu-latest
+            fail_on_low_coverage: false
           - ruby: jruby-head
             operating-system: windows-latest
+            fail_on_low_coverage: false
 
     steps:
       - name: Checkout
