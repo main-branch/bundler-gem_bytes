@@ -136,7 +136,7 @@ module Bundler
         def on_send(node)
           return unless processing_gemspec_block?
 
-          handle_dependency(node) || handle_attribute(node)
+          handle_dependency?(node) || handle_attribute?(node)
         end
 
         # Removes a dependency from the Gem::Specification block
@@ -204,7 +204,7 @@ module Bundler
         # @param node [Parser::AST::Node] the node to check if it is a dependency
         # @return [Boolean] true if the node is a dependency, false otherwise
         # @api private
-        def handle_dependency(node)
+        def handle_dependency?(node)
           return false unless (match = dependency_pattern.match(node))
 
           dependencies << DependencyNode.new(node, Dependency.new(*match))
@@ -216,7 +216,7 @@ module Bundler
         # @param node [Parser::AST::Node] the node to check if it is an attribute
         # @return [Boolean] true if the node is an attribute, false otherwise
         # @api private
-        def handle_attribute(node)
+        def handle_attribute?(node)
           return false unless (match = attribute_pattern.match(node))
           return false unless match[0].end_with?('=')
 
